@@ -1,13 +1,25 @@
-import duckdb
-
+import argparse
+import os
+import shutil
 from src.report_parser.report_parser import ReportParser
 
 if __name__ == "__main__":
-    report_path = "Data Quality Ruleset 11.10.25.xlsx"
-    parser = ReportParser(report_path)
-    kv = parser.generate_kv()
-    
-    # Example of using duckdb to query the generated key-value pairs
-    con = duckdb.connect()
-    result = con.execute("SELECT DISTINCT sheet_name FROM kv LIMIT 10").fetchdf()
-    result.to_csv("result.csv", index=False)
+    parser = argparse.ArgumentParser(description="Process report files in a directory.")
+    parser.add_argument('--reports_path', type=str, required=True, help='Path to the directory containing report files')
+    parser.add_argument('--output_path', type=str, required=False, help='Path to the directory to save processed files')
+    args = parser.parse_args()
+
+    reports_path = args.reports_path
+    output_path = args.output_path
+    processed_dir = os.path.join(reports_path, 'files_processed')
+    os.makedirs(processed_dir, exist_ok=True)
+
+    for filename in os.listdir(reports_path):
+        file_path = os.path.join(reports_path, filename)
+        if os.path.isfile(file_path) and not filename.startswith('.') and filename != 'files_processed':
+            try:
+                ReportParser(file_path).process_file(output_dir=output_path)
+                shutil.move(file_path, os.path.join(processed_dir, filename))
+                print(f"Processed and moved: {filename}")
+            except Exception as e:
+                print(f"Error processing {filename}: {e}")
