@@ -12,7 +12,7 @@ class ReportParser:
         self.file_name = path_obj.stem
         print(f"Constructed ReportParser with path: {self.report_path} and file name: {self.file_name}")
 
-    def _generate_kv(self):
+    def _generate_kv(self, is_kv_persisted=False):
         """
         Generate key-value pairs from the report.
         """
@@ -48,11 +48,19 @@ class ReportParser:
         df = df.melt(id_vars=["idx_row", "sheet_name"], var_name="idx_column")
         df = df.rename(columns={"value": "cell_value"})
         df = df.dropna()
-        return df.loc[
+        df = df.loc[
             df.cell_value.apply(
                 lambda s: len(re.sub("\\s|_x000[A-F]_", "", str(s))) > 0
             )
         ]
+        if is_kv_persisted:
+            kv_output_path = os.path.join("output", "kv", f"{self.file_name}_kv.csv")
+            print(f"Persisting key-value to: {kv_output_path}")
+            os.makedirs(os.path.dirname(kv_output_path), exist_ok=True)
+            df.to_csv(kv_output_path, index=False)
+        
+        return df
+
 
     def _get_parsing_query(self):
         queries_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "queries")
@@ -71,9 +79,9 @@ class ReportParser:
         else:
             return None
 
-    def process_file(self, output_dir):
+    def process_file(self, output_dir, is_kv_persisted=False):
         output_dir = output_dir if output_dir else "output"
-        kv = self._generate_kv()
+        kv = self._generate_kv(is_kv_persisted=is_kv_persisted)
         query = self._get_parsing_query()
         
         if query:
