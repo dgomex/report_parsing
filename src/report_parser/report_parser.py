@@ -55,7 +55,6 @@ class ReportParser:
         ]
 
     def _get_parsing_query(self):
-        # get path from this file
         queries_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "queries")
         if "rent_rolls" in self.file_name.lower():
             query_path = os.path.join(queries_dir, "rent_rolls.sql")
