@@ -1,0 +1,1 @@
+SELECT MIN(idx_row), MAX(idx_row) FROM kv

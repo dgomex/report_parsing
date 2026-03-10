@@ -54,18 +54,40 @@ class ReportParser:
             )
         ]
 
+    def _get_parsing_query(self):
+        # get path from this file
+        queries_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "queries")
+        if "rent_rolls" in self.file_name.lower():
+            query_path = os.path.join(queries_dir, "rent_rolls.sql")
+        elif "delinquency_mf" in self.file_name.lower():
+            query_path = os.path.join(queries_dir, "delinquency_mf.sql")
+        else:
+            query_path = None
+        
+        print(f"Getting query from {query_path}")
+        if query_path and os.path.exists(query_path):
+            with open(query_path, "r") as file:
+                query = file.read()
+            return query
+        else:
+            return None
+
     def process_file(self, output_dir):
         output_dir = output_dir if output_dir else "output"
         kv = self._generate_kv()
+        query = self._get_parsing_query()
         
+        if query:
         # Example of using duckdb to query the generated key-value pairs
-        con = duckdb.connect()
-        print("Running DuckDB query to generate final table")
-        result = con.execute("SELECT DISTINCT sheet_name FROM kv LIMIT 10").fetchdf()
-        
-        print("Ensuring output directory exists")
-        os.makedirs(output_dir, exist_ok=True)
+            con = duckdb.connect()
+            print("Running DuckDB query to generate final table")
+            result = con.execute(query).fetchdf()
+            
+            print("Ensuring output directory exists")
+            os.makedirs(output_dir, exist_ok=True)
 
-        output_path = os.path.join(output_dir, f"{self.file_name}_result.csv")
-        print(f"Writing output to: {output_path}")
-        result.to_csv(output_path, index=False)
+            output_path = os.path.join(output_dir, f"{self.file_name}_result.csv")
+            print(f"Writing output to: {output_path}")
+            result.to_csv(output_path, index=False)
+        else:
+            print(f"No query found for file: {self.file_name}. Skipping processing.")
