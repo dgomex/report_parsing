@@ -29,10 +29,27 @@ This project parses reports using Python.
 
 ## Running the Project
 
-To run the main script:
 
-```sh
-python main.py
+## Usage
+
+The main script requires a command-line argument to specify the path to the directory containing the report files:
+
+```
+python main.py --reports_path <path_to_reports_directory>
+```
+
+**Arguments:**
+
+- `--reports_path` (required): Path to the directory where the report files to be processed are located.
+
+**Behavior:**
+- The script will process each file in the specified directory using the report parser.
+- After processing, each file is moved to a subdirectory called `files_processed` within the same directory.
+
+**Example:**
+
+```
+python main.py --reports_path "C:\path\to\your\reports"
 ```
 
 ## Notes
